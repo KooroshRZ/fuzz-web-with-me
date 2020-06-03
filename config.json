@@ -1,0 +1,15 @@
+{
+    "url" : "https://url",
+    "method" : "POST",
+    "input_file" : "fuzz-web-with-me\\7digit",
+    "output_file" : "fuzz-web-with-me\\phones.txt",
+    "threads" : 3,
+    "headers" : {
+        "User-Agent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0)",
+        "Content-Type" : "application/x-www-form-urlencoded; charset=UTF-8"
+    },
+    "data" : {
+        "cellphone" : "FUZZ",
+        "captcha" : "111"
+    }
+}
