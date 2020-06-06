@@ -5,8 +5,10 @@ import string
 import argparse
 import json
 from time import sleep
+from sys import stdout
 
 session = requests.Session()
+stdout_write = stdout.write
 
 payloads_list = []
 paylosds_size = 0
@@ -26,7 +28,7 @@ index = 0
 
 config_file = 'fuzz-web-with-me\\config.json'
 
-#for debug purpose
+# for debug purpose
 proxies = {
     'http' : 'http://127.0.0.1:8080',
     'https' : 'https://127.0.0.1:8080'
@@ -39,26 +41,46 @@ def distribute_payloads():
     global threads
     global method
 
+    thread_payload = [[] for x in range(threads)]
+    offset = -1
+
+    while offset < paylosds_size:
+
+        for t in range(threads):
+            
+            thread_payload[t].append(payloads_list[offset][:-1])
+            
+            offset += 1
+            if offset == paylosds_size:
+                break
+
+    thread_payload[0].remove(payloads_list[paylosds_size-1][:-1])
+
     for t in range(threads):
-
-        start_offset = t * (paylosds_size//threads)
-        end_offset = (t+1) * (paylosds_size//threads)
-
-        thread = threading.Thread(target=send_requests, args=(start_offset, end_offset))
-
+        
+        thread = threading.Thread(target=send_requests, args=(thread_payload[t], ))
         threads_list.append(thread)
-        thread.start()
+
+        try:
+            thread.start()
+            print("Thread {} started ...".format(t+1))
+        except OSError as err:
+            print(err)
 
 
-def send_requests(start_offset, end_offset):
+def send_requests(thread_payload):
 
     sleep(interval)
     global index
     
+    for payload in thread_payload:
+        
+        index += 1
 
-    for i in range(start_offset, end_offset):
-
-        payload = payloads_list[i][:-1]
+        stdout_write('\r')
+        stdout_write('                                                                                                                     ')
+        stdout_write('\r')
+        print("[*] sending payload : {}".format(payload), end="\r")
 
         if json.dumps(headers).find('FUZZ'):
             temp_headers = json.loads(json.dumps(headers).replace('FUZZ', payload))
@@ -95,7 +117,7 @@ def send_requests(start_offset, end_offset):
             index += 1
             with open(output_file, 'a') as fo:
                 fo.write("{} : {}\n".format(index, payload))
-                print("{} : {}".format(index, payload))
+                print("    [+] {} : {}".format(index, payload))
                 fo.close()
 
 
@@ -122,8 +144,7 @@ def initialize():
 def parse_command():
     
     global config_file
-
-
+    
     global input_file
     global output_file
     global threads
