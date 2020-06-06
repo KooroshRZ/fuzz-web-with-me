@@ -1,11 +1,10 @@
 import requests
-from time import sleep
 import threading
 import random
 import string
-from optparse import OptionParser
 import argparse
 import json
+from time import sleep
 
 session = requests.Session()
 
@@ -15,18 +14,22 @@ paylosds_size = 0
 # config options
 input_file = ''
 output_file = ''
-headers = ''
-data = ''
+headers = None
+data = None
 method = ''
 url = ''
 threads = 0
+interval = 0
+filter_conditions = ''
+print_result_on_success = False
+index = 0
 
 config_file = 'fuzz-web-with-me\\config.json'
 
 #for debug purpose
 proxies = {
-    'http' : '127.0.0.1',
-    'https' : '127.0.0.1:8080'
+    'http' : 'http://127.0.0.1:8080',
+    'https' : 'https://127.0.0.1:8080'
 }
 
 
@@ -41,52 +44,60 @@ def distribute_payloads():
         start_offset = t * (paylosds_size//threads)
         end_offset = (t+1) * (paylosds_size//threads)
 
-        thread = threading.Thread(target=send_requests, args=(method, url, start_offset, end_offset, headers, data))
+        thread = threading.Thread(target=send_requests, args=(start_offset, end_offset))
 
         threads_list.append(thread)
         thread.start()
 
 
-def send_requests(method, url, start_offset, end_offset, headers=None, data=None):
+def send_requests(start_offset, end_offset):
 
-    if method == 'GET':
+    sleep(interval)
+    global index
+    
 
-        for i in range(start_offset, end_offset):
+    for i in range(start_offset, end_offset):
 
-            payload = payloads_list[i][:-1]
+        payload = payloads_list[i][:-1]
 
-            url = '{}'.format(payload)
-
-            response = session.get(url)
-
-            if response.status_code == 200:
-                print("found order with order code : {}".format(payload))
-
-                with open(output_file, 'a') as f1:
-                    f1.write(response.text)
-                    f1.close()
-
-
-    elif method == 'POST':
-
-        for i in range(start_offset, end_offset):
-
-            payload = payloads_list[i][:-1]
-
-            data_temp = json.loads(json.dumps(data).replace('FUZZ', payload))
+        if json.dumps(headers).find('FUZZ'):
+            temp_headers = json.loads(json.dumps(headers).replace('FUZZ', payload))
         
+        if json.dumps(headers).find('FUZZ'):
+            temp_url = url.replace('FUZZ', payload)    
+
+        if method == 'GET':
+
             try:
-                response = session.post(url, data=data_temp, headers=headers)
+                response = session.get(temp_url, headers=temp_headers)
             except OSError as err:
                 print(err)
+                continue
 
-            result = json.loads(response.text)
+        elif method == 'POST':
 
-            if result['isRegistered'] == True:
-                with open(output_file, 'a') as fo:
-                    fo.write("0912" + payload + json.dumps(result) + "\n")
-                    fo.close()
-                
+            data_temp = json.loads(json.dumps(data).replace('FUZZ', payload))
+
+            try:
+                response = session.post(temp_url, data=data_temp, headers=temp_headers)
+            except OSError as err:
+                print(err)
+                continue
+
+        
+        # result = json.loads(response.text)
+
+        code = response.status_code
+        content_length = len(response.text)
+
+        if eval(filter_conditions):
+
+            index += 1
+            with open(output_file, 'a') as fo:
+                fo.write("{} : {}\n".format(index, payload))
+                print("{} : {}".format(index, payload))
+                fo.close()
+
 
 def initialize():
 
@@ -118,13 +129,19 @@ def parse_command():
     global threads
     global method
     global url
+    global interval
+    global filter_conditions
+    global print_result_on_success
 
     result = json.loads(open(config_file, 'r').read())
     input_file = result['input_file']
     output_file = result['output_file']
-    threads = int(result['threads'])
+    threads = result['threads']
     url = result['url']
     method = result['method']
+    interval = result['interval']
+    filter_conditions = result['filter']['conditions']
+    print_result_on_success = result['filter']['print-result-on-success']
 
 
 if __name__ == "__main__":

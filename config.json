@@ -1,9 +1,10 @@
 {
-    "url" : "https://url",
-    "method" : "POST",
-    "input_file" : "fuzz-web-with-me\\7digit",
-    "output_file" : "fuzz-web-with-me\\phones.txt",
-    "threads" : 3,
+    "url" : "https://url/FUZZ",
+    "method" : "GET",
+    "input_file" : "fuzz-web-with-me\\common.txt",
+    "output_file" : "fuzz-web-with-me\\sample_output.txt",
+    "threads" : 5,
+    "interval" : 0.1,
     "headers" : {
         "User-Agent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0)",
         "Content-Type" : "application/x-www-form-urlencoded; charset=UTF-8"
@@ -11,5 +12,13 @@
     "data" : {
         "cellphone" : "FUZZ",
         "captcha" : "111"
-    }
+    },
+    "filter": {
+        "print-result-on-success" :  true,
+        "_comment0" : "add any filter like mentioned in comments in conditions field",
+        "_comment1" : "for searching a string in result             example result.find('some string') > -1",
+        "_comment2" : "for http code filter                         example code == 200",
+        "_comment3" : "for result content-length                    example content-length < 1000",
+        "conditions" : "code == 200"
+    }    
 }
