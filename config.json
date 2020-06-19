@@ -1,25 +1,24 @@
 {
     "input_file" : "fuzz-web-with-me\\common.txt",
     "output_file" : "fuzz-web-with-me\\sample_output.txt",
-    "threads" : 10,
+    "threads" : 14,
     "interval" : 0.1,
-    "url" : "https://<website>/FUZZ",
+    "url" : "https://eshop.eca.ir/FUZZ",
     "method" : "GET",
     "headers" : {
         "User-Agent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0)",
         "Content-Type" : "application/x-www-form-urlencoded; charset=UTF-8"
     },
-    "data" : {
-        "cellphone" : "FUZZ",
-        "captcha" : "111"
+    "post-data" : {
+        "is-json" : false,
+        "params" : {
+            "param1" : "value1",
+            "param2" : "value2"
+        }
     },
     "filter": {
-        "print-result-on-success" :  true,
-        "_comment0" : "add any filter like mentioned in comments in conditions field",
-        "_comment1" : "for searching a string in result             example result.find('some string') > -1",
-        "_comment2" : "for http code filter                         example code == 200",
-        "_comment3" : "for result content-length                    example content-length < 1000",
-        "conditions" : "code == 403 and result.find('forbidden') > -1"
+        "print-result-on-success" :  false,
+        "conditions" : "code != 404"
     },
     "proxy" : {
         "is_set" : false,
