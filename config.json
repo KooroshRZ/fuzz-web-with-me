@@ -1,13 +1,12 @@
 {
-    "input_file" : "fuzz-web-with-me\\common.txt",
-    "output_file" : "fuzz-web-with-me\\sample_output.txt",
-    "threads" : 14,
+    "input_file" : "common.txt",
+    "output_file" : "sample_output.txt",
+    "threads" : 5,
     "interval" : 0.1,
-    "url" : "https://eshop.eca.ir/FUZZ",
+    "url" : "https://<URL>/FUZZ",
     "method" : "GET",
     "headers" : {
-        "User-Agent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0)",
-        "Content-Type" : "application/x-www-form-urlencoded; charset=UTF-8"
+        "User-Agent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0)"
     },
     "post-data" : {
         "is-json" : false,
@@ -18,7 +17,7 @@
     },
     "filter": {
         "print-result-on-success" :  false,
-        "conditions" : "code != 404"
+        "conditions" : "code != 404 and code != 403 "
     },
     "proxy" : {
         "is_set" : false,

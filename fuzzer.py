@@ -10,8 +10,9 @@ session = requests.Session()
 stdout_write = stdout.write
 
 payloads_list = []
-paylosds_size = 0
+payloads_size = 0
 index = 0
+tmp_index = 0
 
 # config options
 
@@ -30,7 +31,7 @@ filter_conditions = ''
 print_result_on_success = False
 
 
-config_file = 'fuzz-web-with-me\\config.json'
+config_file = 'config.json'
 
 # for debug purpose
 proxies = {
@@ -48,23 +49,23 @@ def distribute_payloads():
     thread_payload = [[] for x in range(threads)]
     offset = 0
 
-    while offset < paylosds_size:
+    while offset < payloads_size:
 
         for t in range(threads):
             
 
-            rand_index = random.randint(0, paylosds_size - offset - 1)
+            rand_index = random.randint(0, payloads_size - offset - 1)
             d = payloads_list[rand_index][:-1]
             payloads_list.pop(rand_index)
 
             thread_payload[t].append(d)
 
             offset += 1
-            if offset == paylosds_size:
+            if offset == payloads_size:
                 break
             
 
-    #thread_payload[0].remove(payloads_list[paylosds_size-1][:-1])
+    #thread_payload[0].remove(payloads_list[payloads_size-1][:-1])
 
     for t in range(threads):
         
@@ -80,17 +81,23 @@ def distribute_payloads():
 
 def send_requests(thread_payload):
 
-    sleep(5)
     global index
+    global tmp_index
+
+    sleep(3)
     
     for payload in thread_payload:
+
+        tmp_index += 1
         
         # sleep(interval)
 
         stdout_write('\r')
         stdout_write('                                                                                                                     ')
         stdout_write('\r')
-        print("[*] sending payload : {}".format(payload), end="\r")
+        
+        print("[*] sending payload ({}/{}) : {}".format(tmp_index, payloads_size, payload), end="\r")
+        
 
         if json.dumps(headers).find('FUZZ'):
             temp_headers = json.loads(json.dumps(headers).replace('FUZZ', payload))
@@ -125,8 +132,14 @@ def send_requests(thread_payload):
         
         code = response.status_code
         content_length = len(response.text)
+        result = response.text
 
         if eval(filter_conditions):
+
+            stdout_write('\r')
+            stdout_write('                                                                                                                     ')
+            stdout_write('\r')
+            
 
             if print_result_on_success:
                 print(response.text)
@@ -151,7 +164,7 @@ def initialize():
     global filter_conditions
     global print_result_on_success
     global payloads_list
-    global paylosds_size
+    global payloads_size
     global headers
     global post_params
     global post_json
@@ -162,7 +175,7 @@ def initialize():
     output_file = config['output_file']
 
     payloads_list = open(input_file, 'r').readlines()
-    paylosds_size = len(payloads_list)
+    payloads_size = len(payloads_list)
 
 
     headers = config['headers']
